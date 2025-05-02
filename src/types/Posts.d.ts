@@ -37,17 +37,9 @@ export type Post =
 
 
 export type Comment = {
-<<<<<<< HEAD
-    id?: string;
-    content: string;
-    createdAt: string;
-    user: PostUser;
-    postId: string;
-=======
   id?: string;
   content: string;
   createdAt: string;
   user: PostUser;
   postId: string;
->>>>>>> upstream/dev
 };

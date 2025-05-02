@@ -5,48 +5,13 @@ import type {
 import type { FirestorePost } from "./Posts.d";
 import type { Post, PostUser } from "~/types/Posts.d";
 import { Timestamp } from "firebase-admin/firestore";
-import { createFileInStorage, validateFields, collections, defineSlug, validateFileAnGetType } from "./postUtils"
-
-const firstPage = 1;
-export async function getPosts(
-  page: number = 1,
-  pageSize: number = 10,
-  by: null | { field: string; operator: string; value: string } = null
-) {
-  page = Math.max(Number(page), firstPage);
-  let query: any = collections.posts();
-
-  if (by?.field && by?.operator && by?.value) {
-    query = query.where(by.field, by.operator as WhereFilterOp, by.value);
-  }
-
-  const total = (await query.count().get()).data().count;
-
-  const posts = await query
-    .orderBy("createdAt", "desc")
-    .limit(pageSize)
-    .offset(page === firstPage ? 0 : Number(page - 1) * pageSize)
-    .get();
-
-  const postData = posts.docs.map((doc: FirestorePost) => {
-    return { ...doc.data(), id: doc.id };
-  });
-
-  return {
-    posts: postData,
-    nextPage: page + 1,
-    prevPage: page === firstPage ? firstPage : page - 1,
-    total: total,
-  };
-}
+import { createFileInStorage, validateFields, collections, defineSlug, validateFileAnGetType } from "./postUtils";
+ 
 
 export async function createPost(postInfo: Post, file: File, user: PostUser) {
   validateFields(postInfo, file, user);
 
-  const slug = await defineSlug(
-    postInfo.title as string,
-    postInfo.slug as string
-  );
+  const slug = await defineSlug(postInfo.title as string, postInfo.slug as string);
 
   let type: string | null = null;
   try {
@@ -58,9 +23,9 @@ export async function createPost(postInfo: Post, file: File, user: PostUser) {
     };
   }
 
-  let fileUrl = '';
+  let fileUrl = "";
   try {
-    fileUrl = await createFileInStorage(file)
+    fileUrl = await createFileInStorage(file);
   } catch (error: any) {
     return {
       error,
@@ -74,7 +39,7 @@ export async function createPost(postInfo: Post, file: File, user: PostUser) {
       slug,
       media: {
         url: fileUrl,
-        type: type,
+        type,
         alt: postInfo.title,
       },
       user,
@@ -105,7 +70,7 @@ export async function getPost(
 
     const postInfo = {
       ...queryResult.docs[0]?.data(),
-      id: queryResult.docs[0]?.id, // at the if by error we insert an empty id field in the post, so this return the real id from firebase
+      id: queryResult.docs[0]?.id,
     };
 
     return postInfo;
